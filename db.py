@@ -10,8 +10,12 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_DB_PATH = Path("/home/wei/PowerDecode/data/powerdecode.db")
-LOG_PATH = "/home/wei/PowerDecode/data/powerdecode.log"
+_default_db = Path(__file__).parent / "data" / "powerdecode.db"
+DEFAULT_DB_PATH = Path(os.environ.get("PDD_DB_PATH", str(_default_db)))
+LOG_PATH = os.environ.get(
+    "PDD_LOG_PATH",
+    str(Path(__file__).parent / "data" / "powerdecode.log")
+)
 
 _SCHEMA = """\
 CREATE TABLE IF NOT EXISTS requests (
