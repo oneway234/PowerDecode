@@ -4,7 +4,7 @@
 
 set -e
 
-PDD_DIR="/home/wei/pdd"
+PDD_DIR="/home/wei/PowerDecode"
 TIMESTAMP=$(date +%Y%m%d_%H%M)
 BACKUP_NAME="powerdecode_demo_${TIMESTAMP}.db"
 

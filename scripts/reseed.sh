@@ -29,7 +29,7 @@ fi
 
 echo "  Starting proxy..."
 cd "$PDD_DIR"
-python3 proxy.py > /tmp/pdd_proxy.log 2>&1 &
+python3 proxy.py > /tmp/powerdecode_proxy.log 2>&1 &
 NEW_PROXY_PID=$!
 
 for i in $(seq 1 30); do
@@ -38,7 +38,7 @@ for i in $(seq 1 30); do
         break
     fi
     if [ $i -eq 30 ]; then
-        echo "❌ Proxy failed to start. Check /tmp/pdd_proxy.log"
+        echo "❌ Proxy failed to start. Check /tmp/powerdecode_proxy.log"
         exit 1
     fi
     sleep 1
@@ -53,7 +53,7 @@ if [ -n "$DASH_PID" ]; then
 fi
 
 echo "  Starting dashboard..."
-streamlit run "$PDD_DIR/dashboard.py" --server.port $DASH_PORT --server.headless true > /tmp/pdd_dashboard.log 2>&1 &
+streamlit run "$PDD_DIR/dashboard.py" --server.port $DASH_PORT --server.headless true > /tmp/powerdecode_dashboard.log 2>&1 &
 NEW_DASH_PID=$!
 sleep 2
 

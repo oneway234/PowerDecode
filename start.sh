@@ -107,7 +107,7 @@ else
         --gpu-memory-utilization "$GPU_UTIL" \
         --max-num-seqs "$MAX_SEQS" \
         --max-model-len "$MAX_MODEL_LEN" \
-        > /tmp/pdd_vllm.log 2>&1 &
+        > /tmp/powerdecode_vllm.log 2>&1 &
     VLLM_PID=$!
     PIDS+=("$VLLM_PID")
 
@@ -119,16 +119,16 @@ else
         fi
         # Check if process died
         if ! kill -0 "$VLLM_PID" 2>/dev/null; then
-            echo "[vLLM] ERROR: Process died. Check /tmp/pdd_vllm.log"
-            tail -20 /tmp/pdd_vllm.log
+            echo "[vLLM] ERROR: Process died. Check /tmp/powerdecode_vllm.log"
+            tail -20 /tmp/powerdecode_vllm.log
             exit 1
         fi
         sleep 1
     done
 
     if ! curl -s "http://localhost:${VLLM_PORT}/v1/models" > /dev/null 2>&1; then
-        echo "[vLLM] ERROR: Failed to start within 120s. Check /tmp/pdd_vllm.log"
-        tail -20 /tmp/pdd_vllm.log
+        echo "[vLLM] ERROR: Failed to start within 120s. Check /tmp/powerdecode_vllm.log"
+        tail -20 /tmp/powerdecode_vllm.log
         exit 1
     fi
     echo "[vLLM] Ready."
@@ -146,14 +146,14 @@ if lsof -ti:"${PROXY_PORT}" > /dev/null 2>&1; then
 fi
 
 echo "[Proxy] Starting on port ${PROXY_PORT}..."
-python3 proxy.py > /tmp/pdd_proxy.log 2>&1 &
+python3 proxy.py > /tmp/powerdecode_proxy.log 2>&1 &
 PROXY_PID=$!
 PIDS+=("$PROXY_PID")
 sleep 3
 
 if ! curl -s "http://localhost:${PROXY_PORT}/health" > /dev/null 2>&1; then
-    echo "[Proxy] ERROR: Failed to start. Check /tmp/pdd_proxy.log"
-    tail -20 /tmp/pdd_proxy.log
+    echo "[Proxy] ERROR: Failed to start. Check /tmp/powerdecode_proxy.log"
+    tail -20 /tmp/powerdecode_proxy.log
     cleanup
 fi
 echo "[Proxy] Ready (PID ${PROXY_PID})."
@@ -173,7 +173,7 @@ echo "[Dashboard] Starting on port ${DASH_PORT}..."
 streamlit run dashboard.py \
     --server.port "$DASH_PORT" \
     --server.headless true \
-    > /tmp/pdd_dashboard.log 2>&1 &
+    > /tmp/powerdecode_dashboard.log 2>&1 &
 DASH_PID=$!
 PIDS+=("$DASH_PID")
 sleep 2
@@ -212,7 +212,7 @@ echo "  vLLM:      http://localhost:${VLLM_PORT}"
 echo "  Proxy:     http://localhost:${PROXY_PORT}/v1/chat/completions"
 echo "  Dashboard: http://localhost:${DASH_PORT}"
 echo "  Health:    http://localhost:${PROXY_PORT}/health"
-echo "  Logs:      /tmp/pdd_{vllm,proxy,dashboard}.log"
+echo "  Logs:      /tmp/powerdecode_{vllm,proxy,dashboard}.log"
 echo ""
 
 # ======================================================================
