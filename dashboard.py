@@ -346,14 +346,16 @@ if page == "Overview":
             with tab3:
                 _render_user(r_user)
 
-        # --- Decode Pricing Asymmetry scatter ---
+        # --- Decode Pricing Asymmetry scatter (uses ALL DB records) ---
         st.subheader("Decode Pricing Asymmetry")
         st.caption("If pricing were fair, all points would lie on the diagonal. Points above = decode users underpaying under flat-rate billing.")
 
         W_PREFILL = 0.0112
         W_DECODE  = 0.4851
 
-        asym_df = df[df["total_tokens"] > 0].copy()
+        all_rows = get_recent_requests(conn, limit=100_000)
+        all_df = _to_dataframe(all_rows, price_per_kwh=electricity_price)
+        asym_df = all_df[all_df["total_tokens"] > 0].copy()
         asym_df["decode_token_pct"] = (
             asym_df["decode_tokens"] / asym_df["total_tokens"] * 100
         )
@@ -364,6 +366,23 @@ if page == "Overview":
         asym_df["status"] = asym_df["anomaly_flag"].map(
             {0: "Normal", 1: "Anomaly", 2: "Extreme"}
         ).fillna("Normal")
+        # Short model name: keep only the part after the last "/"
+        asym_df["model"] = asym_df["model"].apply(lambda m: m.rsplit("/", 1)[-1] if isinstance(m, str) else m)
+
+        # Model filter checkboxes
+        all_models = sorted(asym_df["model"].dropna().unique().tolist())
+        if len(all_models) > 1:
+            filter_cols = st.columns(len(all_models) + 1)
+            select_all = filter_cols[0].checkbox("All", value=True, key="asym_all")
+            selected_models = []
+            for i, m in enumerate(all_models):
+                checked = filter_cols[i + 1].checkbox(m, value=select_all, key=f"asym_{m}")
+                if checked:
+                    selected_models.append(m)
+            if selected_models:
+                asym_df = asym_df[asym_df["model"].isin(selected_models)]
+        elif len(all_models) == 1:
+            st.caption(f"Model: {all_models[0]}")
 
         # Diagonal fair-pricing line
         line_df = pd.DataFrame({"x": [0, 100], "y": [0, 100]})
