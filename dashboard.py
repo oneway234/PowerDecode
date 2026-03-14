@@ -346,50 +346,53 @@ if page == "Overview":
             with tab3:
                 _render_user(r_user)
 
-        # --- Decode Asymmetry: overlapping bars ---
-        st.subheader("Decode Asymmetry: Token % vs Energy %")
-        st.caption("Blue = 100% baseline · Yellow = decode energy share · Red = decode token share")
+        # --- Decode Asymmetry: overlapping energy bars ---
+        st.subheader("Decode Asymmetry")
+        st.caption("Blue = total energy · Yellow = decode energy (weighted) · Red = energy if proportional to token count")
 
         W_PREFILL = 0.0112
         W_DECODE  = 0.4851
 
         asym_df = df[df["total_tokens"] > 0].copy()
-        asym_df["decode_token_pct"] = (
-            asym_df["decode_tokens"] / asym_df["total_tokens"] * 100
-        )
+        asym_df = asym_df.sort_values("timestamp")
+        asym_df["req_num"] = range(1, len(asym_df) + 1)
+
+        # Decode energy share in Joules
         asym_df["prefill_weight"] = asym_df["prefill_tokens"] * W_PREFILL
         asym_df["decode_weight"]  = asym_df["decode_tokens"]  * W_DECODE
         asym_df["total_weight"]   = asym_df["prefill_weight"] + asym_df["decode_weight"]
-        asym_df["decode_energy_pct"] = (
-            asym_df["decode_weight"] / asym_df["total_weight"] * 100
+        asym_df["decode_energy_j"] = (
+            asym_df["energy_joules"] * asym_df["decode_weight"] / asym_df["total_weight"]
         ).where(asym_df["total_weight"] > 0, 0)
-        asym_df["baseline"] = 100.0
-        asym_df = asym_df.sort_values("timestamp")
-        asym_df["req_num"] = range(1, len(asym_df) + 1)
+
+        # "If energy were proportional to token count" in Joules
+        asym_df["decode_token_pct"] = asym_df["decode_tokens"] / asym_df["total_tokens"]
+        asym_df["decode_by_token_j"] = asym_df["energy_joules"] * asym_df["decode_token_pct"]
 
         _base_x = alt.X("req_num:O", title="Request #", axis=alt.Axis(labels=False))
         _tooltips = [
             alt.Tooltip("req_num:Q", title="Request #"),
             alt.Tooltip("prompt_preview:N", title="Prompt"),
-            alt.Tooltip("decode_token_pct:Q", title="Decode token %", format=".1f"),
-            alt.Tooltip("decode_energy_pct:Q", title="Decode energy %", format=".1f"),
+            alt.Tooltip("energy_joules:Q", title="Total energy (J)", format=".4f"),
+            alt.Tooltip("decode_energy_j:Q", title="Decode energy (J)", format=".4f"),
+            alt.Tooltip("decode_by_token_j:Q", title="If proportional (J)", format=".4f"),
             alt.Tooltip("ts_label:N", title="Timestamp"),
         ]
 
         bar_blue = (
             alt.Chart(asym_df)
-            .mark_bar(opacity=0.3, color="steelblue")
-            .encode(x=_base_x, y=alt.Y("baseline:Q", title="Percentage (%)"), tooltip=_tooltips)
+            .mark_bar(opacity=0.35, color="steelblue")
+            .encode(x=_base_x, y=alt.Y("energy_joules:Q", title="Energy (J)"), tooltip=_tooltips)
         )
         bar_yellow = (
             alt.Chart(asym_df)
             .mark_bar(opacity=0.7, color="#f58518")
-            .encode(x=_base_x, y="decode_energy_pct:Q", tooltip=_tooltips)
+            .encode(x=_base_x, y="decode_energy_j:Q", tooltip=_tooltips)
         )
         bar_red = (
             alt.Chart(asym_df)
             .mark_bar(opacity=0.85, color="#e45756")
-            .encode(x=_base_x, y="decode_token_pct:Q", tooltip=_tooltips)
+            .encode(x=_base_x, y="decode_by_token_j:Q", tooltip=_tooltips)
         )
 
         asym_chart = (bar_blue + bar_yellow + bar_red).properties(height=350)
