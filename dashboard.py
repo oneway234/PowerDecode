@@ -382,6 +382,70 @@ if page == "Overview":
         )
         st.altair_chart(bar, use_container_width=True)
 
+        # --- Decode Asymmetry chart ---
+        st.subheader("Decode Asymmetry: Token % vs Energy %")
+        st.caption("Each bar shows decode token share (red) vs decode energy share (yellow) per request")
+
+        W_PREFILL = 0.0112
+        W_DECODE  = 0.4851
+
+        asym_df = df.copy()
+        asym_df = asym_df[asym_df["total_tokens"] > 0].copy()
+        # Decode token %
+        asym_df["decode_token_pct"] = (
+            asym_df["decode_tokens"] / asym_df["total_tokens"] * 100
+        )
+        # Decode energy % (weighted)
+        asym_df["prefill_weight"] = asym_df["prefill_tokens"] * W_PREFILL
+        asym_df["decode_weight"]  = asym_df["decode_tokens"]  * W_DECODE
+        asym_df["total_weight"]   = asym_df["prefill_weight"] + asym_df["decode_weight"]
+        asym_df["decode_energy_pct"] = (
+            asym_df["decode_weight"] / asym_df["total_weight"] * 100
+        ).where(asym_df["total_weight"] > 0, 0)
+
+        asym_df = asym_df.sort_values("timestamp")
+        asym_df["req_num"] = range(1, len(asym_df) + 1)
+
+        # Melt into long format for Altair
+        asym_long = pd.melt(
+            asym_df[["req_num", "prompt_preview", "decode_token_pct", "decode_energy_pct", "ts_label"]],
+            id_vars=["req_num", "prompt_preview", "ts_label"],
+            value_vars=["decode_token_pct", "decode_energy_pct"],
+            var_name="metric",
+            value_name="pct",
+        )
+        asym_long["metric"] = asym_long["metric"].map({
+            "decode_token_pct":  "Decode token %",
+            "decode_energy_pct": "Decode energy %",
+        })
+
+        asym_chart = (
+            alt.Chart(asym_long)
+            .mark_bar(opacity=0.8)
+            .encode(
+                x=alt.X("req_num:O", title="Request #", axis=alt.Axis(labels=False)),
+                y=alt.Y("pct:Q", title="Percentage (%)", scale=alt.Scale(domain=[0, 100])),
+                color=alt.Color(
+                    "metric:N",
+                    scale=alt.Scale(
+                        domain=["Decode token %", "Decode energy %"],
+                        range=["#e45756", "#f58518"],
+                    ),
+                    legend=alt.Legend(title=None, orient="top"),
+                ),
+                xOffset="metric:N",
+                tooltip=[
+                    alt.Tooltip("req_num:Q", title="Request #"),
+                    alt.Tooltip("prompt_preview:N", title="Prompt"),
+                    alt.Tooltip("pct:Q", title="Percentage (%)", format=".1f"),
+                    alt.Tooltip("metric:N", title="Metric"),
+                    alt.Tooltip("ts_label:N", title="Timestamp"),
+                ],
+            )
+            .properties(height=300)
+        )
+        st.altair_chart(asym_chart, use_container_width=True)
+
         # --- Table ---
         st.subheader("Recent Requests")
         display_df = df[
