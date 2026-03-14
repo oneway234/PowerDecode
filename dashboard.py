@@ -423,15 +423,12 @@ if page == "Overview":
                         title="Decode energy % of total energy",
                         scale=alt.Scale(domain=[0, 100])),
                 color=alt.Color(
-                    "status:N",
-                    scale=alt.Scale(
-                        domain=["Normal", "Anomaly", "Extreme"],
-                        range=["#f58518", "#e45756", "#8b0000"],
-                    ),
-                    legend=alt.Legend(title="Status"),
+                    "model:N",
+                    legend=alt.Legend(title="Model"),
                 ),
                 tooltip=[
                     alt.Tooltip("prompt_preview:N", title="Prompt"),
+                    alt.Tooltip("model:N", title="Model"),
                     alt.Tooltip("decode_token_pct:Q", title="Decode token %", format=".1f"),
                     alt.Tooltip("decode_energy_pct:Q", title="Decode energy %", format=".1f"),
                     alt.Tooltip("prefill_tokens:Q", title="Prefill tokens"),
