@@ -372,13 +372,12 @@ if page == "Overview":
         # Model filter checkboxes
         all_models = sorted(asym_df["model"].dropna().unique().tolist())
         if len(all_models) > 1:
-            filter_cols = st.columns(len(all_models) + 1)
-            select_all = filter_cols[0].checkbox("All", value=True, key="asym_all")
+            filter_cols = st.columns(len(all_models))
             selected_models = []
             for i, m in enumerate(all_models):
-                checked = filter_cols[i + 1].checkbox(m, value=select_all, key=f"asym_{m}")
-                if checked:
+                if filter_cols[i].checkbox(m, value=False, key=f"asym_{m}"):
                     selected_models.append(m)
+            # No checkbox selected → show all
             if selected_models:
                 asym_df = asym_df[asym_df["model"].isin(selected_models)]
         elif len(all_models) == 1:
