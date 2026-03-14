@@ -100,11 +100,21 @@ async def lifespan(app: FastAPI):
     logger.info("PowerDecode proxy ready on port 8001")
 
     # --- Auto warm-up in background (doesn't block startup) ---
+    def _get_vllm_model() -> str:
+        try:
+            r = httpx.get("http://localhost:8000/v1/models", timeout=10.0)
+            models = r.json().get("data", [])
+            if models:
+                return models[0]["id"]
+        except Exception:
+            pass
+        return os.environ.get("VLLM_MODEL", "Qwen/Qwen2.5-3B-Instruct")
+
     def _run_warmup():
         time.sleep(2.0)  # wait for uvicorn to be fully ready
         logger.info("Starting GPU warm-up (3 requests)...")
         payload = {
-            "model": WARMUP_MODEL,
+            "model": _get_vllm_model(),
             "messages": [{"role": "user", "content": "hi"}],
             "max_tokens": 10,
         }
