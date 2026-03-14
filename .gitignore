@@ -1,2 +1,11 @@
 .env
 __pycache__/
+
+# Cluster result files — machine-specific, should not be tracked
+cluster/validate_result.json
+cluster/calibrate_result.json
+cluster/diagnose_result.json
+cluster/benchmark_baselines.json
+data/powerdecode.db
+data/powerdecode.log
+data/benchmark_results.json
