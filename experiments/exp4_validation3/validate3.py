@@ -31,7 +31,20 @@ logging.basicConfig(
 logger = logging.getLogger("validate3")
 
 VLLM_URL = "http://localhost:8000/v1/chat/completions"
-MODEL = "Qwen/Qwen2.5-3B-Instruct"
+
+
+def _detect_model() -> str:
+    try:
+        resp = httpx.get("http://localhost:8000/v1/models", timeout=10.0)
+        models = resp.json().get("data", [])
+        if models:
+            return models[0]["id"]
+    except Exception:
+        pass
+    return "Qwen/Qwen2.5-3B-Instruct"
+
+
+MODEL = _detect_model()
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 REQUESTS = [

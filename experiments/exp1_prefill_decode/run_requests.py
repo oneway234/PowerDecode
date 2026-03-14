@@ -17,6 +17,7 @@ import json
 import time
 from pathlib import Path
 
+import httpx
 from openai import OpenAI
 
 # ---------------------------------------------------------------------------
@@ -24,7 +25,20 @@ from openai import OpenAI
 # ---------------------------------------------------------------------------
 
 API_BASE_URL = "http://localhost:8000/v1"
-MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
+
+
+def _detect_model() -> str:
+    try:
+        resp = httpx.get(f"{API_BASE_URL}/models", timeout=10.0)
+        models = resp.json().get("data", [])
+        if models:
+            return models[0]["id"]
+    except Exception:
+        pass
+    return "Qwen/Qwen2.5-3B-Instruct"
+
+
+MODEL_NAME = _detect_model()
 NUM_ROUNDS = 5
 IDLE_SLEEP_SECONDS = 5
 
