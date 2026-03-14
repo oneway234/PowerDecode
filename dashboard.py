@@ -444,7 +444,6 @@ if page == "Overview":
 # ======================================================================
 
 elif page == "Request Detail":
-    st.title("Request Detail")
 
     rows = get_recent_requests(conn, limit=200)
     df = _to_dataframe(rows, price_per_kwh=electricity_price)
@@ -452,88 +451,178 @@ elif page == "Request Detail":
     if df.empty:
         st.warning("No requests recorded yet.")
     else:
-        _flag_labels = {0: "OK", 1: "⚠️ Anomaly", 2: "🔴 Extreme"}
-
         def _format_option(i: int) -> str:
             r = df.iloc[i]
             flag = int(r["anomaly_flag"])
-            prefix = ""
-            if flag == 2:
-                prefix = "🔴 "
-            elif flag == 1:
-                prefix = "⚠️ "
+            prefix = "🔴 " if flag == 2 else "⚠️ " if flag == 1 else ""
             return f"{prefix}{r['request_id'][:12]}…  |  {r['prompt_preview'][:40]}"
 
-        selected_idx = st.selectbox("Select Request", range(len(df)), format_func=_format_option)
+        st.title("Request Detail")
 
+        # === Hero sentence（靜態部分）===
+        st.markdown(
+            """
+            <div style="text-align:center; padding:1.5rem 0 0.5rem 0;">
+                <div style="margin-bottom:0.6rem;">
+                    <span style="background:#f58518; color:white; font-size:0.75rem;
+                                 font-weight:700; padding:0.25rem 0.7rem; border-radius:3px;
+                                 letter-spacing:0.05em; text-transform:uppercase;">
+                        Measured on GPU hardware
+                    </span>
+                </div>
+                <div style="font-size:0.95rem; opacity:0.55; margin-bottom:0.4rem;">
+                    Energy Breakdown for a Single Inference Request
+                </div>
+                <div style="font-size:2.4rem; font-weight:700; color:#f58518;
+                            line-height:1.15; margin-bottom:0.4rem;">
+                    Decode costs 8.3× more electricity<br>than prefill tokens
+                </div>
+                <div style="font-size:1.1rem; opacity:0.65;">
+                    Measured on RTX 4060 Ti using real inference workloads
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # 從 session_state 讀取（selectbox 在 attr_col 內，但值通過 key 持久化）
+        selected_idx = st.session_state.get("_detail_req_idx", 0)
+        if selected_idx >= len(df):
+            selected_idx = 0
         row = df.iloc[selected_idx]
         flag = int(row["anomaly_flag"])
+        prefill_cost_share = row["prefill_tokens"] * 0.0212
+        decode_cost_share  = row["decode_tokens"]  * 0.1772
+        total = prefill_cost_share + decode_cost_share
+        prefill_pct = prefill_cost_share / total * 100 if total > 0 else 0.0
+        decode_pct  = decode_cost_share  / total * 100 if total > 0 else 0.0
 
+        # === Inference economics hint（動態）===
+        st.markdown(
+            f"""
+            <div style="text-align:center; padding:0.5rem 0 1rem 0;
+                        font-size:1.4rem; font-weight:600;">
+                ⚡ {row['decode_tokens']} decode token{"s" if row['decode_tokens'] != 1 else ""}
+                consumed <span style="color:#f58518; font-weight:700;">{decode_pct:.1f}%</span>
+                of the electricity cost
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Anomaly banner
         if flag == 2:
             st.markdown(
-                '<div style="background-color:#fff3cd;color:#856404;padding:8px 12px;border-radius:6px;margin-bottom:12px;">'
+                '<div style="background-color:#ff4444;color:white;padding:8px 12px;'
+                'border-radius:6px;margin-bottom:8px;">'
                 '🔴 <strong>Extreme anomaly</strong> — energy = 0, attribution failed.'
-                '</div>',
-                unsafe_allow_html=True,
-            )
+                '</div>', unsafe_allow_html=True)
         elif flag == 1:
             st.markdown(
-                '<div style="background-color:#ffcccc;padding:8px 12px;border-radius:6px;margin-bottom:12px;">'
+                '<div style="background-color:#ffcccc;padding:8px 12px;'
+                'border-radius:6px;margin-bottom:8px;">'
                 '⚠️ <strong>Statistical anomaly</strong> — '
-                'cost-per-weighted-token exceeds mean + 2\u03c3 of recent baseline.'
-                '</div>',
-                unsafe_allow_html=True,
-            )
+                'cost-per-weighted-token exceeds mean + 2σ.'
+                '</div>', unsafe_allow_html=True)
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader("Request Info")
+        st.markdown("---")
+
+        # === Donut（左） + Attribution（右）===
+        donut_col, attr_col = st.columns([1, 1])
+
+        with donut_col:
+            token_df = pd.DataFrame({
+                "type": ["Prefill cost", "Decode cost"],
+                "cost_share": [prefill_cost_share, decode_cost_share],
+                "label": [
+                    f"Prefill cost ({prefill_pct:.1f}%)",
+                    f"Decode cost ({decode_pct:.1f}%)",
+                ],
+            })
+            donut = (
+                alt.Chart(token_df)
+                .mark_arc(innerRadius=70, outerRadius=150)
+                .encode(
+                    theta="cost_share:Q",
+                    color=alt.Color(
+                        "type:N",
+                        scale=alt.Scale(
+                            domain=["Prefill cost", "Decode cost"],
+                            range=["#4c78a8", "#f58518"],
+                        ),
+                        legend=alt.Legend(
+                            orient="none",
+                            legendX=70,
+                            legendY=0,
+                            direction="horizontal",
+                            title=None,
+                            labelFontSize=20,
+                            symbolSize=250,
+                        ),
+                    ),
+                    tooltip=["label", "cost_share"],
+                )
+                .properties(height=420, width=400, padding={"top": 5, "bottom": 10, "left": 30, "right": 10})
+            )
+            st.altair_chart(donut, use_container_width=False)
+
+        with attr_col:
+            st.markdown("<div style='padding-top:2rem'>", unsafe_allow_html=True)
+            st.subheader("Attribution")
+
+            # Energy → Cost → Tokens → Anomaly
+            energy_j = row["energy_joules"]
+            cost_uusd = row["cost"] * 1_000_000
+
+            st.markdown(f"""
+            <div style="font-size:1.05rem; line-height:2.2;">
+                <div style="font-size:1.3rem; margin:0.3rem 0;">
+                    <span style="font-weight:700; color:#f58518;">Cost per request</span>
+                    <span style="float:right; font-weight:700; color:#f58518; font-size:1.35rem;">
+                        {cost_uusd:.4f} µUSD
+                    </span>
+                </div>
+                <div><span style="opacity:0.6">Energy</span>
+                    <span style="float:right; font-weight:600;">
+                        {energy_j:.4f} J
+                    </span>
+                </div>
+                <hr style="opacity:0.2; margin:0.5rem 0">
+                <div><span style="opacity:0.6">Prefill tokens</span>
+                    <span style="float:right;">{row['prefill_tokens']}</span>
+                </div>
+                <div><span style="opacity:0.6">Decode tokens</span>
+                    <span style="float:right;">{row['decode_tokens']}</span>
+                </div>
+                <div><span style="opacity:0.6">Latency</span>
+                    <span style="float:right;">{row['latency_s']:.3f}s</span>
+                </div>
+                <hr style="opacity:0.2; margin:0.5rem 0">
+                <div><span style="opacity:0.6">Anomaly</span>
+                    <span style="float:right;">
+                        {"🔴 Extreme" if flag == 2 else "⚠️ Anomaly" if flag == 1 else "✓ OK"}
+                    </span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.selectbox(
+                "Request",
+                range(len(df)),
+                format_func=_format_option,
+                key="_detail_req_idx",
+            )
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # === Technical Details（折疊）===
+        with st.expander("Technical Details", expanded=False):
             st.write(f"**Request ID:** `{row['request_id']}`")
             st.write(f"**Prompt:** {row['prompt_preview']}")
             st.write(f"**Model:** {row['model']}")
             st.write(f"**Endpoint:** {row['endpoint']}")
             st.write(f"**Timestamp:** {row['timestamp']}")
-            st.write(f"**Latency:** {row['latency_s']:.3f}s")
 
-        with c2:
-            st.subheader("Attribution")
-            st.write(f"**Prefill Tokens:** {row['prefill_tokens']}")
-            st.write(f"**Decode Tokens:** {row['decode_tokens']}")
-            st.write(f"**Energy:** {fmt_energy(row['energy_joules'])}")
-            st.write(f"**Cost:** {fmt_cost(row['cost'])}")
-            if flag == 2:
-                st.markdown(':red[**Anomaly: 🔴 Extreme**]')
-            elif flag == 1:
-                st.markdown(':orange[**Anomaly: ⚠️ Anomaly**]')
-            else:
-                st.write("**Anomaly:** OK")
-
-        # Cost attribution donut
-        st.subheader("Cost Attribution (Prefill vs Decode)")
-        prefill_cost_share = row["prefill_tokens"] * 0.0212
-        decode_cost_share = row["decode_tokens"] * 0.1772
-        total = prefill_cost_share + decode_cost_share
-        prefill_pct = prefill_cost_share / total * 100 if total > 0 else 0.0
-        decode_pct = decode_cost_share / total * 100 if total > 0 else 0.0
-        token_df = pd.DataFrame({
-            "type": ["Prefill", "Decode"],
-            "cost_share": [prefill_cost_share, decode_cost_share],
-            "label": [f"Prefill ({prefill_pct:.1f}%)", f"Decode ({decode_pct:.1f}%)"],
-        })
-        donut = (
-            alt.Chart(token_df)
-            .mark_arc(innerRadius=50)
-            .encode(
-                theta="cost_share:Q",
-                color=alt.Color("type:N", scale=alt.Scale(
-                    domain=["Prefill", "Decode"],
-                    range=["#4c78a8", "#f58518"],
-                )),
-                tooltip=["label", "cost_share"],
-            )
-            .properties(height=250, width=250)
-        )
-        st.altair_chart(donut)
         del df
 
 
