@@ -9,3 +9,14 @@ cluster/benchmark_baselines.json
 data/powerdecode.db
 data/powerdecode.log
 data/benchmark_results.json
+
+# Design docs and internal notes
+PowerDecode_DesignDoc.md
+PROJECT_OVERVIEW.md
+CHECKLIST.md
+demo_prepare.md
+demo_prepare_v2.md
+development_record.md
+cluster/BATTLE_PLAN.md
+cluster/BATTLE_PLAN_v3.md
+cluster/BATTLE_PLAN_v4.md

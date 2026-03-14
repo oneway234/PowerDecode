@@ -4,9 +4,16 @@ import concurrent.futures
 import datetime
 import json
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Default to bundled demo.db when no DB path is configured (e.g. Streamlit Cloud)
+if not os.environ.get("PDD_DB_PATH"):
+    demo_db = Path(__file__).parent / "data" / "demo.db"
+    if demo_db.exists():
+        os.environ["PDD_DB_PATH"] = str(demo_db)
 
 import altair as alt
 import anthropic
