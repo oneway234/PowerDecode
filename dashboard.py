@@ -346,42 +346,6 @@ if page == "Overview":
             with tab3:
                 _render_user(r_user)
 
-        # --- Bar chart: energy per request ---
-        st.subheader("Energy per Request")
-        chart_df = df[["request_id", "prompt_preview", "model", "endpoint", "energy_joules", "anomaly_flag", "timestamp", "ts_label"]].copy()
-        chart_df["short_id"] = chart_df["request_id"].str[:8]
-        chart_df["status"] = chart_df["anomaly_flag"].map(
-            {0: "Normal", 1: "Anomaly", 2: "Extreme"}
-        ).fillna("Normal")
-        chart_df = chart_df.sort_values("timestamp")
-
-        bar = (
-            alt.Chart(chart_df)
-            .mark_bar()
-            .encode(
-                x=alt.X("short_id:N", sort=None, axis=alt.Axis(labels=False, title=None)),
-                y=alt.Y("energy_joules:Q", title="Energy (J)"),
-                color=alt.Color(
-                    "status:N",
-                    scale=alt.Scale(
-                        domain=["Normal", "Anomaly", "Extreme"],
-                        range=["steelblue", "#e74c3c", "#f5a623"],
-                    ),
-                    legend=alt.Legend(title="Status"),
-                ),
-                tooltip=[
-                    alt.Tooltip("prompt_preview:N", title="Prompt"),
-                    alt.Tooltip("model:N", title="Model"),
-                    alt.Tooltip("endpoint:N", title="Endpoint"),
-                    alt.Tooltip("energy_joules:Q", title="Energy (J)", format=".4f"),
-                    alt.Tooltip("status:N", title="Status"),
-                    alt.Tooltip("ts_label:N", title="Timestamp"),
-                ],
-            )
-            .properties(height=350)
-        )
-        st.altair_chart(bar, use_container_width=True)
-
         # --- Decode Pricing Asymmetry scatter ---
         st.subheader("Decode Pricing Asymmetry")
         st.caption("If pricing were fair, all points would lie on the diagonal. Points above = decode users underpaying under flat-rate billing.")
@@ -443,6 +407,55 @@ if page == "Overview":
             (diagonal + scatter).resolve_scale(color="independent"),
             use_container_width=True,
         )
+
+        # --- Bar chart: energy per request (scrollable) ---
+        st.subheader("Energy per Request")
+        chart_df = df[["request_id", "prompt_preview", "model", "endpoint", "energy_joules", "anomaly_flag", "timestamp", "ts_label"]].copy()
+        chart_df["short_id"] = chart_df["request_id"].str[:8]
+        chart_df["status"] = chart_df["anomaly_flag"].map(
+            {0: "Normal", 1: "Anomaly", 2: "Extreme"}
+        ).fillna("Normal")
+        chart_df = chart_df.sort_values("timestamp").reset_index(drop=True)
+        chart_df["_idx"] = chart_df.index
+
+        n_bars = len(chart_df)
+        visible = 50
+        if n_bars > visible:
+            lo, hi = st.slider(
+                "Scroll requests",
+                min_value=0,
+                max_value=n_bars - 1,
+                value=(max(0, n_bars - visible), n_bars - 1),
+                key="energy_scroll",
+            )
+            chart_df = chart_df[(chart_df["_idx"] >= lo) & (chart_df["_idx"] <= hi)]
+
+        bar = (
+            alt.Chart(chart_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("short_id:N", sort=None, axis=alt.Axis(labels=False, title=None)),
+                y=alt.Y("energy_joules:Q", title="Energy (J)"),
+                color=alt.Color(
+                    "status:N",
+                    scale=alt.Scale(
+                        domain=["Normal", "Anomaly", "Extreme"],
+                        range=["steelblue", "#e74c3c", "#f5a623"],
+                    ),
+                    legend=alt.Legend(title="Status"),
+                ),
+                tooltip=[
+                    alt.Tooltip("prompt_preview:N", title="Prompt"),
+                    alt.Tooltip("model:N", title="Model"),
+                    alt.Tooltip("endpoint:N", title="Endpoint"),
+                    alt.Tooltip("energy_joules:Q", title="Energy (J)", format=".4f"),
+                    alt.Tooltip("status:N", title="Status"),
+                    alt.Tooltip("ts_label:N", title="Timestamp"),
+                ],
+            )
+            .properties(height=350)
+        )
+        st.altair_chart(bar, use_container_width=True)
 
         # --- Table ---
         st.subheader("Recent Requests")
