@@ -346,57 +346,41 @@ if page == "Overview":
             with tab3:
                 _render_user(r_user)
 
-        # --- Decode Asymmetry: overlapping energy bars ---
-        st.subheader("Decode Asymmetry")
-        st.caption("Blue = total energy · Yellow = decode energy (weighted) · Red = energy if proportional to token count")
+        # --- Bar chart: energy per request ---
+        st.subheader("Energy per Request")
+        chart_df = df[["request_id", "prompt_preview", "model", "endpoint", "energy_joules", "anomaly_flag", "timestamp", "ts_label"]].copy()
+        chart_df["short_id"] = chart_df["request_id"].str[:8]
+        chart_df["status"] = chart_df["anomaly_flag"].map(
+            {0: "Normal", 1: "Anomaly", 2: "Extreme"}
+        ).fillna("Normal")
+        chart_df = chart_df.sort_values("timestamp")
 
-        W_PREFILL = 0.0112
-        W_DECODE  = 0.4851
-
-        asym_df = df[df["total_tokens"] > 0].copy()
-        asym_df = asym_df.sort_values("timestamp")
-        asym_df["req_num"] = range(1, len(asym_df) + 1)
-
-        # Decode energy share in Joules
-        asym_df["prefill_weight"] = asym_df["prefill_tokens"] * W_PREFILL
-        asym_df["decode_weight"]  = asym_df["decode_tokens"]  * W_DECODE
-        asym_df["total_weight"]   = asym_df["prefill_weight"] + asym_df["decode_weight"]
-        asym_df["decode_energy_j"] = (
-            asym_df["energy_joules"] * asym_df["decode_weight"] / asym_df["total_weight"]
-        ).where(asym_df["total_weight"] > 0, 0)
-
-        # "If energy were proportional to token count" in Joules
-        asym_df["decode_token_pct"] = asym_df["decode_tokens"] / asym_df["total_tokens"]
-        asym_df["decode_by_token_j"] = asym_df["energy_joules"] * asym_df["decode_token_pct"]
-
-        _base_x = alt.X("req_num:O", title="Request #", axis=alt.Axis(labels=False))
-        _tooltips = [
-            alt.Tooltip("req_num:Q", title="Request #"),
-            alt.Tooltip("prompt_preview:N", title="Prompt"),
-            alt.Tooltip("energy_joules:Q", title="Total energy (J)", format=".4f"),
-            alt.Tooltip("decode_energy_j:Q", title="Decode energy (J)", format=".4f"),
-            alt.Tooltip("decode_by_token_j:Q", title="If proportional (J)", format=".4f"),
-            alt.Tooltip("ts_label:N", title="Timestamp"),
-        ]
-
-        bar_blue = (
-            alt.Chart(asym_df)
-            .mark_bar(opacity=0.35, color="steelblue")
-            .encode(x=_base_x, y=alt.Y("energy_joules:Q", title="Energy (J)"), tooltip=_tooltips)
+        bar = (
+            alt.Chart(chart_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("short_id:N", sort=None, axis=alt.Axis(labels=False, title=None)),
+                y=alt.Y("energy_joules:Q", title="Energy (J)"),
+                color=alt.Color(
+                    "status:N",
+                    scale=alt.Scale(
+                        domain=["Normal", "Anomaly", "Extreme"],
+                        range=["steelblue", "#e74c3c", "#f5a623"],
+                    ),
+                    legend=alt.Legend(title="Status"),
+                ),
+                tooltip=[
+                    alt.Tooltip("prompt_preview:N", title="Prompt"),
+                    alt.Tooltip("model:N", title="Model"),
+                    alt.Tooltip("endpoint:N", title="Endpoint"),
+                    alt.Tooltip("energy_joules:Q", title="Energy (J)", format=".4f"),
+                    alt.Tooltip("status:N", title="Status"),
+                    alt.Tooltip("ts_label:N", title="Timestamp"),
+                ],
+            )
+            .properties(height=350)
         )
-        bar_yellow = (
-            alt.Chart(asym_df)
-            .mark_bar(opacity=0.7, color="#f58518")
-            .encode(x=_base_x, y="decode_energy_j:Q", tooltip=_tooltips)
-        )
-        bar_red = (
-            alt.Chart(asym_df)
-            .mark_bar(opacity=0.85, color="#e45756")
-            .encode(x=_base_x, y="decode_by_token_j:Q", tooltip=_tooltips)
-        )
-
-        asym_chart = (bar_blue + bar_yellow + bar_red).properties(height=350)
-        st.altair_chart(asym_chart, use_container_width=True)
+        st.altair_chart(bar, use_container_width=True)
 
         # --- Table ---
         st.subheader("Recent Requests")
