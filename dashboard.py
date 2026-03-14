@@ -502,8 +502,10 @@ elif page == "Request Detail":
             f"""
             <div style="text-align:center; padding:0.5rem 0 1rem 0;
                         font-size:1.4rem; font-weight:600;">
-                ⚡ {row['decode_tokens']} decode token{"s" if row['decode_tokens'] != 1 else ""}
-                consumed <span style="color:#f58518; font-weight:700;">{decode_pct:.1f}%</span>
+                ⚡ Decode tokens were only
+                <span style="color:#f58518; font-weight:700;">{row['decode_tokens'] / max(row['decode_tokens'] + row['prefill_tokens'], 1) * 100:.1f}%</span>
+                of the tokens but consumed
+                <span style="color:#f58518; font-weight:700;">{decode_pct:.1f}%</span>
                 of the electricity cost
             </div>
             """,
