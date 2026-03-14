@@ -382,6 +382,71 @@ if page == "Overview":
         )
         st.altair_chart(bar, use_container_width=True)
 
+        # --- Decode Pricing Asymmetry scatter ---
+        st.subheader("Decode Pricing Asymmetry")
+        st.caption("If pricing were fair, all points would lie on the diagonal. Points above = decode users underpaying under flat-rate billing.")
+
+        W_PREFILL = 0.0112
+        W_DECODE  = 0.4851
+
+        asym_df = df[df["total_tokens"] > 0].copy()
+        asym_df["decode_token_pct"] = (
+            asym_df["decode_tokens"] / asym_df["total_tokens"] * 100
+        )
+        pw = asym_df["prefill_tokens"] * W_PREFILL
+        dw = asym_df["decode_tokens"]  * W_DECODE
+        tw = pw + dw
+        asym_df["decode_energy_pct"] = (dw / tw * 100).where(tw > 0, 0)
+        asym_df["status"] = asym_df["anomaly_flag"].map(
+            {0: "Normal", 1: "Anomaly", 2: "Extreme"}
+        ).fillna("Normal")
+
+        # Diagonal fair-pricing line
+        line_df = pd.DataFrame({"x": [0, 100], "y": [0, 100]})
+        diagonal = (
+            alt.Chart(line_df)
+            .mark_line(strokeDash=[6, 4], color="#666666", opacity=0.5)
+            .encode(
+                x=alt.X("x:Q"),
+                y=alt.Y("y:Q"),
+            )
+        )
+
+        scatter = (
+            alt.Chart(asym_df)
+            .mark_circle(size=60, opacity=0.7)
+            .encode(
+                x=alt.X("decode_token_pct:Q",
+                        title="Decode token % of total tokens",
+                        scale=alt.Scale(domain=[0, 100])),
+                y=alt.Y("decode_energy_pct:Q",
+                        title="Decode energy % of total energy",
+                        scale=alt.Scale(domain=[0, 100])),
+                color=alt.Color(
+                    "status:N",
+                    scale=alt.Scale(
+                        domain=["Normal", "Anomaly", "Extreme"],
+                        range=["#f58518", "#e45756", "#8b0000"],
+                    ),
+                    legend=alt.Legend(title="Status"),
+                ),
+                tooltip=[
+                    alt.Tooltip("prompt_preview:N", title="Prompt"),
+                    alt.Tooltip("decode_token_pct:Q", title="Decode token %", format=".1f"),
+                    alt.Tooltip("decode_energy_pct:Q", title="Decode energy %", format=".1f"),
+                    alt.Tooltip("prefill_tokens:Q", title="Prefill tokens"),
+                    alt.Tooltip("decode_tokens:Q", title="Decode tokens"),
+                    alt.Tooltip("status:N", title="Status"),
+                ],
+            )
+            .properties(height=350)
+        )
+
+        st.altair_chart(
+            (diagonal + scatter).resolve_scale(color="independent"),
+            use_container_width=True,
+        )
+
         # --- Table ---
         st.subheader("Recent Requests")
         display_df = df[
