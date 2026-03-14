@@ -2,6 +2,8 @@
 
 > GPU watts → per-request cost. The missing analytics layer for LLM inference.
 
+PowerDecode measures GPU electricity per inference request and attributes it to tokens.
+
 🎥 Demo Video: [coming soon]
 📊 Live Dashboard: https://powerdecode.streamlit.app
 📦 GitHub: https://github.com/oneway234/PowerDecode
@@ -37,6 +39,8 @@ This asymmetry is consistent across all model sizes. It is not an artifact of an
 ---
 
 ## The Dashboard
+
+PowerDecode turns GPU watts into per-request cost visibility.
 
 PowerDecode is a proxy layer that sits between your application and vLLM. Every inference request is measured in real time:
 
