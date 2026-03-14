@@ -399,15 +399,8 @@ if page == "Overview":
 
         # Label for the shaded region
         shade_label = (
-            alt.Chart(pd.DataFrame({"x": [30], "y": [75], "text": ["Underpriced decode workloads"]}))
-            .mark_text(fontSize=12, color="#e74c3c", opacity=0.6, fontStyle="italic", angle=0)
-            .encode(x="x:Q", y="y:Q", text="text:N")
-        )
-
-        # Killer annotation — top-right
-        killer_annotation = (
-            alt.Chart(pd.DataFrame({"x": [72], "y": [95], "text": ["Decode-heavy workloads pay less than their electricity cost"]}))
-            .mark_text(fontSize=13, color="#e74c3c", fontWeight="bold", align="center")
+            alt.Chart(pd.DataFrame({"x": [25], "y": [70], "text": ["Underpriced decode workloads"]}))
+            .mark_text(fontSize=16, color="#e74c3c", opacity=0.7, fontWeight="bold", angle=0)
             .encode(x="x:Q", y="y:Q", text="text:N")
         )
 
@@ -424,7 +417,7 @@ if page == "Overview":
 
         # Label for the diagonal line
         diag_label = (
-            alt.Chart(pd.DataFrame({"x": [82], "y": [87], "text": ["Fair Pricing Line"]}))
+            alt.Chart(pd.DataFrame({"x": [55], "y": [60], "text": ["Flat Pricing Line"]}))
             .mark_text(fontSize=11, color="#666666", fontWeight="bold", angle=38)
             .encode(x="x:Q", y="y:Q", text="text:N")
         )
@@ -457,7 +450,7 @@ if page == "Overview":
         )
 
         st.altair_chart(
-            (shade + shade_label + killer_annotation + diagonal + diag_label + scatter).resolve_scale(color="independent"),
+            (shade + shade_label + diagonal + diag_label + scatter).resolve_scale(color="independent"),
             use_container_width=True,
         )
 
