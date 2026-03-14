@@ -369,17 +369,26 @@ if page == "Overview":
         # Short model name: keep only the part after the last "/"
         asym_df["model"] = asym_df["model"].apply(lambda m: m.rsplit("/", 1)[-1] if isinstance(m, str) else m)
 
-        # Model filter checkboxes
-        all_models = sorted(asym_df["model"].dropna().unique().tolist())
+        # Model filter checkboxes — sorted by parameter size (small → large)
+        import re
+
+        def _model_size_key(name: str) -> float:
+            """Extract parameter count (in billions) for sorting."""
+            m = re.search(r"(\d+(?:\.\d+)?)\s*[Bb]", name)
+            return float(m.group(1)) if m else float("inf")
+
+        all_models = sorted(asym_df["model"].dropna().unique().tolist(), key=_model_size_key)
         if len(all_models) > 1:
             filter_cols = st.columns(len(all_models))
             selected_models = []
             for i, m in enumerate(all_models):
-                if filter_cols[i].checkbox(m, value=False, key=f"asym_{m}"):
+                if filter_cols[i].checkbox(m, value=True, key=f"asym_{m}"):
                     selected_models.append(m)
-            # No checkbox selected → show all
+            # Filter to only checked models
             if selected_models:
                 asym_df = asym_df[asym_df["model"].isin(selected_models)]
+            else:
+                asym_df = asym_df.iloc[0:0]  # empty — all unchecked
         elif len(all_models) == 1:
             st.caption(f"Model: {all_models[0]}")
 
