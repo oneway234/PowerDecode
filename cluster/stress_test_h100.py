@@ -1,13 +1,13 @@
-"""PowerDecode Concurrent Stress Test — Fluidstack H100 Edition.
+"""PowerDecode Concurrent Stress Test — Fluidstack B200 Edition.
 
-Based on stress_test.py but tuned for H100 characteristics:
+Based on stress_test.py but tuned for B200 characteristics:
   - Higher decode throughput (~600 tok/s) → longer max_tokens for overlap
   - Larger batch capacity → up to 128 concurrent
   - Faster prefill (<100ms) → longer prompts for sufficient sampling
   - Higher idle power (~50W)
 
 Auto-detects model from vLLM /v1/models.
-After all batches, prints H100 vs 4060 Ti comparison from benchmark_baselines.json.
+After all batches, prints B200 vs 4060 Ti comparison from benchmark_baselines.json.
 
 Usage:
     1. Start vLLM on port 8000
@@ -164,14 +164,14 @@ async def warmup() -> None:
 
 
 # ======================================================================
-# Batch definitions (H100-tuned)
+# Batch definitions (B200-tuned)
 # ======================================================================
 
 
 def batch_1() -> list[tuple[str, int, str]]:
     """Baseline: 2 identical requests, expect ~50/50 cost split.
 
-    max_tokens=300 (up from 100) to ensure overlap on fast H100 decode.
+    max_tokens=300 (up from 100) to ensure overlap on fast B200 decode.
     """
     prompt = "Explain what is a GPU."
     return [
@@ -183,17 +183,17 @@ def batch_1() -> list[tuple[str, int, str]]:
 def batch_2() -> list[tuple[str, int, str]]:
     """Weight verification: prefill-heavy vs decode-heavy.
 
-    Prefill prompt = 1600 words to ensure H100 prefill has enough sampling points.
-    Decode max_tokens = 600 for sufficient decode duration on H100.
+    Prefill prompt = 800 words to ensure B200 prefill has enough sampling points.
+    Decode max_tokens = 600 for sufficient decode duration on B200.
     """
     return [
-        ("word " * 1600 + "Summarize.", 20, "prefill-heavy"),
+        ("word " * 800 + "Summarize.", 20, "prefill-heavy"),
         ("Tell me a story.", 600, "decode-heavy"),
     ]
 
 
 def batch_3() -> list[tuple[str, int, str]]:
-    """Medium concurrency: 16 requests (up from 8 for H100 capacity).
+    """Medium concurrency: 16 requests (up from 8 for B200 capacity).
 
     8 prefill-heavy + 8 decode-heavy, interleaved.
     """
@@ -210,7 +210,7 @@ def batch_3() -> list[tuple[str, int, str]]:
 
 
 def batch_4() -> list[tuple[str, int, str]]:
-    """High concurrency: 64 requests (up from 32 for H100 capacity)."""
+    """High concurrency: 64 requests (up from 32 for B200 capacity)."""
     reqs = []
     for i in range(32):
         reqs.append(("What is 2+2?", 50, f"short-{i}"))
@@ -220,7 +220,7 @@ def batch_4() -> list[tuple[str, int, str]]:
 
 
 def batch_5() -> list[tuple[str, int, str]]:
-    """H100 stress test: 128 concurrent requests."""
+    """B200 stress test: 128 concurrent requests."""
     reqs = []
     prompts_mixed = [
         "Explain how neural networks learn.",
@@ -242,14 +242,14 @@ def batch_5() -> list[tuple[str, int, str]]:
 
 
 # ======================================================================
-# H100 vs 4060 Ti comparison
+# B200 vs 4060 Ti comparison
 # ======================================================================
 
 
 def print_gpu_comparison() -> None:
-    """Load benchmark_baselines.json and print H100 vs 4060 Ti side-by-side."""
+    """Load benchmark_baselines.json and print B200 vs 4060 Ti side-by-side."""
     print(f"\n{'='*60}")
-    print("  H100 vs 4060 Ti — Baseline Comparison")
+    print("  B200 vs 4060 Ti — Baseline Comparison")
     print(f"{'='*60}")
 
     if not BASELINES_PATH.exists():
@@ -268,13 +268,13 @@ def print_gpu_comparison() -> None:
 
     has_data = False
     for model, gpus in by_key.items():
-        h100 = gpus.get("NVIDIA H100")
+        h100 = gpus.get("NVIDIA B200")
         ti = gpus.get("RTX 4060 Ti 16GB")
         if not h100 and not ti:
             continue
 
         print(f"\n  Model: {model}")
-        print(f"  {'Metric':<25} {'4060 Ti':>12} {'H100':>12} {'Ratio':>8}")
+        print(f"  {'Metric':<25} {'4060 Ti':>12} {'B200':>12} {'Ratio':>8}")
         print(f"  {'-'*25} {'-'*12} {'-'*12} {'-'*8}")
 
         ti_idle = ti.get("idle_power_w") if ti else None
@@ -299,12 +299,12 @@ def print_gpu_comparison() -> None:
         print(f"  {'W_decode':<25} {_fmt(ti_wd):>12} {_fmt(h100_wd):>12} {_ratio(h100_wd, ti_wd):>8}")
 
         if h100_idle is None or h100_wp is None or h100_wd is None:
-            print("\n  ⚠ H100 baseline pending — run calibrate.py first")
+            print("\n  ⚠ B200 baseline pending — run calibrate.py first")
         else:
             has_data = True
 
     if not has_data:
-        print("\n  No complete H100 data yet. Run calibrate.py on H100 to populate.")
+        print("\n  No complete B200 data yet. Run calibrate.py on B200 to populate.")
 
 
 # ======================================================================
@@ -314,9 +314,9 @@ def print_gpu_comparison() -> None:
 BATCHES = [
     ("BATCH 1 — Baseline (identical requests)", batch_1),
     ("BATCH 2 — Weight verification (prefill vs decode)", batch_2),
-    ("BATCH 3 — Medium concurrency (H100)", batch_3),
-    ("BATCH 4 — High concurrency (H100)", batch_4),
-    ("BATCH 5 — H100 stress test", batch_5),
+    ("BATCH 3 — Medium concurrency (B200)", batch_3),
+    ("BATCH 4 — High concurrency (B200)", batch_4),
+    ("BATCH 5 — B200 stress test", batch_5),
 ]
 
 
@@ -355,7 +355,7 @@ async def main() -> None:
     print_gpu_comparison()
 
     print(f"\n{'='*60}")
-    print("  H100 stress test complete.")
+    print("  B200 stress test complete.")
     print(f"{'='*60}\n")
 
 
