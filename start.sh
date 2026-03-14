@@ -20,14 +20,31 @@
 set -e
 cd "$(dirname "$0")"
 
+# Auto-add local bin to PATH (for cluster environments)
+export PATH="$PATH:$HOME/.local/bin"
+
+# DB path — auto-detect based on environment
+if [ -z "$PDD_DB_PATH" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    PDD_DB_PATH="${SCRIPT_DIR}/data/powerdecode.db"
+fi
+export PDD_DB_PATH
+
 # ======================================================================
 # Defaults (override with env vars)
 # ======================================================================
-MODEL="${PDD_MODEL:-Qwen/Qwen2.5-3B-Instruct}"
+VLLM_PORT="${PDD_VLLM_PORT:-8000}"
+
+# Auto-detect model from vLLM if already running, else use env var or default
+if curl -s "http://localhost:${VLLM_PORT}/v1/models" > /dev/null 2>&1; then
+    MODEL=$(curl -s "http://localhost:${VLLM_PORT}/v1/models" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin)['data'][0]['id'])")
+else
+    MODEL="${PDD_MODEL:-Qwen/Qwen2.5-3B-Instruct}"
+fi
 GPU_UTIL="${PDD_GPU_UTIL:-0.85}"
 MAX_SEQS="${PDD_MAX_SEQS:-32}"
 MAX_MODEL_LEN="${PDD_MAX_MODEL_LEN:-32768}"
-VLLM_PORT="${PDD_VLLM_PORT:-8000}"
 PROXY_PORT="${PDD_PROXY_PORT:-8001}"
 DASH_PORT="${PDD_DASH_PORT:-8501}"
 
@@ -145,6 +162,7 @@ if lsof -ti:"${PROXY_PORT}" > /dev/null 2>&1; then
     sleep 1
 fi
 
+export VLLM_MODEL="$MODEL"
 echo "[Proxy] Starting on port ${PROXY_PORT}..."
 python3 proxy.py > /tmp/powerdecode_proxy.log 2>&1 &
 PROXY_PID=$!
