@@ -383,6 +383,34 @@ if page == "Overview":
         elif len(all_models) == 1:
             st.caption(f"Model: {all_models[0]}")
 
+        # Shaded region above diagonal (underpriced decode workloads)
+        shade_df = pd.DataFrame({
+            "x": [0, 0, 100],
+            "y": [0, 100, 100],
+        })
+        shade = (
+            alt.Chart(shade_df)
+            .mark_area(opacity=0.08, color="#e74c3c")
+            .encode(
+                x=alt.X("x:Q"),
+                y=alt.Y("y:Q"),
+            )
+        )
+
+        # Label for the shaded region
+        shade_label = (
+            alt.Chart(pd.DataFrame({"x": [30], "y": [75], "text": ["Underpriced decode workloads"]}))
+            .mark_text(fontSize=12, color="#e74c3c", opacity=0.6, fontStyle="italic", angle=0)
+            .encode(x="x:Q", y="y:Q", text="text:N")
+        )
+
+        # Killer annotation — top-right
+        killer_annotation = (
+            alt.Chart(pd.DataFrame({"x": [72], "y": [95], "text": ["Decode-heavy workloads pay less than their electricity cost"]}))
+            .mark_text(fontSize=13, color="#e74c3c", fontWeight="bold", align="center")
+            .encode(x="x:Q", y="y:Q", text="text:N")
+        )
+
         # Diagonal fair-pricing line
         line_df = pd.DataFrame({"x": [0, 100], "y": [0, 100]})
         diagonal = (
@@ -394,15 +422,22 @@ if page == "Overview":
             )
         )
 
+        # Label for the diagonal line
+        diag_label = (
+            alt.Chart(pd.DataFrame({"x": [82], "y": [87], "text": ["Fair Pricing Line"]}))
+            .mark_text(fontSize=11, color="#666666", fontWeight="bold", angle=38)
+            .encode(x="x:Q", y="y:Q", text="text:N")
+        )
+
         scatter = (
             alt.Chart(asym_df)
             .mark_circle(size=60, opacity=0.7)
             .encode(
                 x=alt.X("decode_token_pct:Q",
-                        title="Decode token % of total tokens",
+                        title="Decode Tokens (% of tokens)",
                         scale=alt.Scale(domain=[0, 100])),
                 y=alt.Y("decode_energy_pct:Q",
-                        title="Decode energy % of total energy",
+                        title="Decode Electricity (% of GPU energy)",
                         scale=alt.Scale(domain=[0, 100])),
                 color=alt.Color(
                     "model:N",
@@ -422,7 +457,7 @@ if page == "Overview":
         )
 
         st.altair_chart(
-            (diagonal + scatter).resolve_scale(color="independent"),
+            (shade + shade_label + killer_annotation + diagonal + diag_label + scatter).resolve_scale(color="independent"),
             use_container_width=True,
         )
 
