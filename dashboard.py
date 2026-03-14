@@ -417,7 +417,7 @@ if page == "Overview":
 
         # Label for the diagonal line
         diag_label = (
-            alt.Chart(pd.DataFrame({"x": [55], "y": [60], "text": ["Flat Pricing Line"]}))
+            alt.Chart(pd.DataFrame({"x": [55], "y": [60], "text": ["Fair Pricing Line"]}))
             .mark_text(fontSize=11, color="#666666", fontWeight="bold", angle=38)
             .encode(x="x:Q", y="y:Q", text="text:N")
         )
