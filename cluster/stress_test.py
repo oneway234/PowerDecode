@@ -16,8 +16,22 @@ import time
 
 import httpx
 
-MODEL = "Qwen/Qwen2.5-3B-Instruct"
 PROXY_URL = "http://localhost:8001"
+VLLM_URL = "http://localhost:8000"
+MODEL = ""  # auto-detected at startup
+
+
+def detect_model() -> str:
+    """Auto-detect model from vLLM /v1/models."""
+    try:
+        resp = httpx.get(f"{VLLM_URL}/v1/models", timeout=10.0)
+        resp.raise_for_status()
+        models = resp.json().get("data", [])
+        if models:
+            return models[0]["id"]
+    except Exception as e:
+        print(f"  Warning: could not detect model: {e}")
+    return "Qwen/Qwen2.5-3B-Instruct"
 COMPLETIONS_URL = f"{PROXY_URL}/v1/chat/completions"
 STATS_URL = f"{PROXY_URL}/stats/recent"
 REQUEST_TIMEOUT = 120.0
@@ -229,6 +243,11 @@ BATCHES = [
 
 
 async def main() -> None:
+    global MODEL
+    print("Detecting model from vLLM...")
+    MODEL = detect_model()
+    print(f"  Model: {MODEL}\n")
+
     await warmup()
 
     for name, build_fn in BATCHES:
