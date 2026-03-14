@@ -286,15 +286,20 @@ def batch_d() -> list[tuple[str, int, str]]:
 
 
 def batch_e() -> list[tuple[str, int, str]]:
-    """BATCH E — 1 decode-heavy + 7 short (concurrent 8).
-    The 1 decode-heavy should eat 60%+ of total energy.
-    Short requests use max_tokens=5 so they finish fast and don't accumulate energy.
+    """BATCH E — 8 similar-latency requests (concurrent 8).
+    All use max_tokens=150 with similar-length prompts for fair attribution.
     """
-    reqs = [("Write a very long and detailed story about a journey through space, "
-             "covering every planet in the solar system.", 500, "decode-dominant")]
-    for i in range(7):
-        reqs.append(("Say hi.", 5, f"short-{i}"))
-    return reqs
+    prompts = [
+        "Explain what is machine learning.",
+        "Explain what is deep learning.",
+        "Explain what is a neural network.",
+        "Explain what is backpropagation.",
+        "Explain what is gradient descent.",
+        "Explain what is overfitting.",
+        "Explain what is a transformer.",
+        "Explain what is attention mechanism.",
+    ]
+    return [(p, 150, f"similar-{i}") for i, p in enumerate(prompts)]
 
 
 
@@ -450,9 +455,9 @@ async def main() -> None:
     await asyncio.sleep(3.0)
 
     # ------------------------------------------------------------------
-    # BATCH E — 1 decode-heavy + 7 short
+    # BATCH E — 8 similar-latency requests
     # ------------------------------------------------------------------
-    print_batch_header("BATCH E — 1 decode-heavy + 7 short (dominance)", 8)
+    print_batch_header("BATCH E — 8 similar-latency requests (fair split)", 8)
     results = await send_batch(batch_e())
     print_results(results)
     total_ok += sum(1 for r in results if r["status"] == "ok")
@@ -460,21 +465,6 @@ async def main() -> None:
     await asyncio.sleep(5.0)
     stats_e = fetch_recent(8)
     print_attribution(stats_e)
-
-    # Find the decode-dominant request
-    if stats_e:
-        total_energy_e = sum(r.get("energy_joules", 0) or 0 for r in stats_e)
-        if total_energy_e > 0:
-            # The decode-heavy one should have highest energy
-            energies = sorted(
-                [(r.get("energy_joules", 0) or 0, r.get("prompt_preview", "")) for r in stats_e],
-                reverse=True,
-            )
-            top_energy, top_preview = energies[0]
-            top_share = top_energy / total_energy_e * 100
-            rest_avg = sum(e for e, _ in energies[1:]) / max(len(energies) - 1, 1) / total_energy_e * 100
-            print(f"\n  decode-heavy request 佔總能耗: {top_share:.1f}%")
-            print(f"  其他 {len(energies)-1} 筆平均各佔: {rest_avg:.1f}%")
 
     # ==================================================================
     # Final summary
@@ -503,14 +493,6 @@ async def main() -> None:
     )
     has_slope_change = total_count >= 30  # enough data for visible trend change
 
-    # Batch E decode dominance
-    batch_e_pass = False
-    if stats_e:
-        te = sum(r.get("energy_joules", 0) or 0 for r in stats_e)
-        if te > 0:
-            top_e = max(r.get("energy_joules", 0) or 0 for r in stats_e)
-            batch_e_pass = (top_e / te * 100) > 50
-
     check = lambda ok: "✓" if ok else "✗"
 
     print(f"\n{'='*60}")
@@ -528,7 +510,6 @@ async def main() -> None:
     print(f"  {check(has_decode_heavy)} Request Detail：有 decode > 90% 的 request")
     print(f"  {check(has_prefill_heavy)} Request Detail：有 prefill > 60% 的 request")
     print(f"  {check(has_slope_change)} Cost Trend：有明顯斜率變化")
-    print(f"  {check(batch_e_pass)} Batch E：decode-heavy 佔比 > 50%")
     print(f"{'='*60}\n")
 
 
