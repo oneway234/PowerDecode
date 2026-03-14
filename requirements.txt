@@ -11,12 +11,24 @@ httpx
 
 # Dashboard
 streamlit
+streamlit-autorefresh
 altair
 pandas
 
 # Data processing
 numpy
+matplotlib
+
+# HTTP
+requests
 
 # Environment & AI analysis
 python-dotenv
 anthropic
+openai
+
+# Experiment / vLLM client
+typing_extensions
+
+# Testing
+pytest
