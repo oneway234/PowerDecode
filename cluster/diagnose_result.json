@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-03-13T02:32:01.341966+00:00",
+  "gpu_count": 1,
+  "gpu_model": "NVIDIA GeForce RTX 4060 Ti",
+  "gpu_memory_gb": 16.0,
+  "pynvml_available": true,
+  "pynvml_sampling_ms": 10,
+  "dcgm_available": false,
+  "nvidia_smi_available": true,
+  "decode_latency_sec": 0.0,
+  "decode_sample_count": 0,
+  "recommended_strategy": "pynvml_10ms",
+  "recommended_sampler_interval_ms": 10,
+  "warmup_requests_needed": 3,
+  "notes": [
+    "Decode latency test error: Server error '500 Internal Server Error' for url 'http://localhost:8000/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
+  ]
+}

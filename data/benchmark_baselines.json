@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-03-13",
+  "baselines": [
+    {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "gpu": "NVIDIA GeForce RTX 4060 Ti",
+      "idle_power_w": 28.65,
+      "w_prefill": 0.0005,
+      "w_decode": 0.2435,
+      "measured_by": "powerdecode-calibrate",
+      "notes": "W_DECODE reliable (600 tok, 286 samples/round, spread <3%). W_PREFILL unreliable — prefill <50ms, only 7-8 samples, CV >100%. IDLE measured warm (28.65 vs cold 21W)."
+    },
+    {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "gpu": "NVIDIA GeForce RTX 4060 Ti",
+      "idle_power_w": 30.59,
+      "w_prefill": 0.0007,
+      "w_decode": 0.8825,
+      "measured_by": "powerdecode-calibrate",
+      "notes": "W_DECODE reliable (600 tok, 760 samples/round, spread <2%). W_PREFILL unreliable — prefill <50ms, only 8 samples, CV >100%. IDLE measured warm (30.59 vs cold 21W)."
+    },
+    {
+      "model": "Qwen/Qwen2.5-3B-Instruct",
+      "gpu": "NVIDIA GeForce RTX 4060 Ti",
+      "idle_power_w": 30.68,
+      "w_prefill": 0.0005,
+      "w_decode": 1.7873,
+      "measured_by": "powerdecode-calibrate",
+      "notes": "W_DECODE reliable (400 tok, 979 samples/round, spread <2%). W_PREFILL unreliable — prefill <50ms, only 9 samples, CV >100%. IDLE measured warm (30.68 vs cold 21W)."
+    },
+    {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "gpu": "NVIDIA GeForce RTX 4060 Ti",
+      "idle_power_w": null,
+      "w_prefill": null,
+      "w_decode": null,
+      "measured_by": null,
+      "notes": "VRAM insufficient — 7B needs ~14.5 GiB + compile overhead, OOM on 16GB 4060 Ti"
+    },
+    {
+      "model": "Qwen/Qwen2.5-3B-Instruct",
+      "gpu": "NVIDIA H100",
+      "idle_power_w": null,
+      "w_prefill": null,
+      "w_decode": null,
+      "measured_by": null,
+      "notes": "to be measured on Fluidstack"
+    }
+  ]
+}

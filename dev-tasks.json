@@ -2,7 +2,7 @@
   "tasks": [
     {
       "id": "T-001",
-      "status": "open",
+      "status": "done",
       "priority": "high",
       "title": "環境準備：vLLM + 模型 + CUDA 驗證",
       "description": "安裝 vLLM 及依賴，下載 Llama 3.2 3B 模型，確認 4060 Ti 16GB VRAM 足夠。驗證 nvidia-smi 可以 100ms 間隔採樣功耗。建立 requirements.txt。",
@@ -13,7 +13,7 @@
     },
     {
       "id": "T-002",
-      "status": "open",
+      "status": "done",
       "priority": "high",
       "title": "GPU 功耗採樣器",
       "description": "寫 collectors/gpu_power.py：用 subprocess 呼叫 nvidia-smi --query-gpu=power.draw,timestamp --format=csv -lms 100，輸出 CSV (timestamp, power_watts)。支援背景啟動/停止（context manager 或獨立 process）。",
@@ -24,7 +24,7 @@
     },
     {
       "id": "T-003",
-      "status": "open",
+      "status": "done",
       "priority": "high",
       "title": "vLLM 啟動腳本 & 三組實驗 Request 腳本",
       "description": "寫 vLLM server 啟動指令/腳本。寫 experiments/exp1_prefill_decode/run_requests.py：測試 A 長 prompt 2000+ tokens → max_tokens=1；測試 B 短 prompt <10 tokens → max_tokens=512；測試 C 中 prompt 200 tokens → max_tokens=200。每組跑 5-10 輪取平均，每輪之間留 idle 間隔讓功耗回基線。",
@@ -35,7 +35,7 @@
     },
     {
       "id": "T-004",
-      "status": "open",
+      "status": "done",
       "priority": "high",
       "title": "數據串聯：GPU 功耗 × Request 時間對齊",
       "description": "記錄每個 request 的 start_time/end_time。從 vLLM /metrics 抓取 prefill latency、decode latency、token 數。將 GPU 功耗時間序列按 request 時間窗口切片，對齊到每個 request。",
@@ -46,7 +46,7 @@
     },
     {
       "id": "T-005",
-      "status": "open",
+      "status": "done",
       "priority": "high",
       "title": "分析 & 可視化：判定加權方法可行性",
       "description": "寫 experiments/exp1_prefill_decode/analyze.py：計算每個測試的平均瓦數、峰值瓦數、持續時間；計算 watts/prefill_token vs watts/decode_token；判斷 A vs B 差異是否 >15%。用 matplotlib 畫功耗時間序列對比圖。輸出結論：加權方法可行 or 改用純 time slice。",
@@ -65,6 +65,50 @@
       "files_to_create": [],
       "files_to_modify": ["PowerDecode_DesignDoc.md", "CLAUDE.md"],
       "tests": []
+    },
+    {
+      "id": "T-007",
+      "status": "open",
+      "priority": "high",
+      "title": "Attribution Engine 核心實作",
+      "description": "實作 engine/attribution.py：時間切片 + 加權 token 分配。輸入 GPU 功耗時間序列 + request log，輸出每個 request 的能量歸因（焦耳）。需扣除 idle_power(21.07W)，使用 W_prefill=0.0212、W_decode=0.1772。內建驗證三（能量守恆檢查）。",
+      "depends_on": ["T-005"],
+      "files_to_create": ["engine/__init__.py", "engine/attribution.py"],
+      "files_to_modify": [],
+      "tests": ["tests/test_attribution.py"]
+    },
+    {
+      "id": "T-008",
+      "status": "open",
+      "priority": "high",
+      "title": "驗證一：單一 request 封閉驗證",
+      "description": "跑單一 request（無並發），比較 Attribution Engine 結果與直接測量值 (avg_watts - idle_power) × duration。通過標準：誤差 < 10%。必須先通過才能繼續開發。",
+      "depends_on": ["T-007"],
+      "files_to_create": ["experiments/verification/verify_single_request.py"],
+      "files_to_modify": [],
+      "tests": []
+    },
+    {
+      "id": "T-009",
+      "status": "open",
+      "priority": "high",
+      "title": "驗證二：已知比例雙 request 驗證",
+      "description": "同時送兩個 request（純 prefill + 純 decode），比較 Attribution Engine 分配比例與理論加權 token 比例。通過標準：誤差 < 15%。",
+      "depends_on": ["T-008"],
+      "files_to_create": ["experiments/verification/verify_dual_request.py"],
+      "files_to_modify": [],
+      "tests": []
+    },
+    {
+      "id": "T-010",
+      "status": "open",
+      "priority": "medium",
+      "title": "驗證三：能量守恆持續檢查（內建於 Attribution Engine）",
+      "description": "在 Attribution Engine 中內建能量守恆檢查：所有 request 分到的能量總和 vs GPU 實際可分攤能量。每次跑完自動驗證，誤差 < 5%。",
+      "depends_on": ["T-007"],
+      "files_to_create": [],
+      "files_to_modify": ["engine/attribution.py"],
+      "tests": ["tests/test_attribution.py"]
     }
   ]
 }

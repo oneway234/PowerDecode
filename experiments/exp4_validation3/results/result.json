@@ -1,0 +1,33 @@
+{
+  "requests": [
+    {
+      "label": "R1(200)",
+      "prefill_tokens": 37,
+      "decode_tokens": 200,
+      "latency_s": 5.3863,
+      "energy_joules": 58.184198
+    },
+    {
+      "label": "R2(400)",
+      "prefill_tokens": 36,
+      "decode_tokens": 400,
+      "latency_s": 10.7621,
+      "energy_joules": 275.305267
+    },
+    {
+      "label": "R3(600)",
+      "prefill_tokens": 37,
+      "decode_tokens": 600,
+      "latency_s": 16.0176,
+      "energy_joules": 856.797468
+    }
+  ],
+  "conservation": {
+    "total_attributed_joules": 1190.286933,
+    "total_attributable_joules": 1187.503458,
+    "error_pct": 0.2344,
+    "passed": true,
+    "sample_count": 1599,
+    "request_count": 3
+  }
+}

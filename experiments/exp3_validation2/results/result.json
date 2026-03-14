@@ -1,0 +1,24 @@
+{
+  "request_x": {
+    "prefill_tokens": 37,
+    "decode_tokens": 200,
+    "latency_s": 5.3788,
+    "energy_joules": 85.27784,
+    "weighted_tokens": 36.2244,
+    "theory_ratio": 0.0681,
+    "actual_ratio": 0.0686,
+    "error_pct": 0.75
+  },
+  "request_y": {
+    "prefill_tokens": 71,
+    "decode_tokens": 600,
+    "latency_s": 15.9334,
+    "energy_joules": 1158.213432,
+    "weighted_tokens": 107.8252,
+    "theory_ratio": 0.9319,
+    "actual_ratio": 0.9314,
+    "error_pct": 0.05
+  },
+  "total_energy_joules": 1243.491272,
+  "passed": true
+}

@@ -1,0 +1,140 @@
+[
+  {
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "timestamp": 1773381583.412175,
+    "cases": [
+      {
+        "label": "short-in/short-out",
+        "avg": {
+          "prefill_tokens": 32,
+          "decode_tokens": 10,
+          "latency_s": 0.275,
+          "energy_joules": 5.267,
+          "cost_usd": 1.7556666666666666e-07
+        },
+        "rounds": [
+          {
+            "prefill_tokens": 32,
+            "decode_tokens": 10,
+            "latency_s": 0.281,
+            "energy_joules": 4.684033,
+            "cost_usd": 1.561e-07
+          },
+          {
+            "prefill_tokens": 32,
+            "decode_tokens": 10,
+            "latency_s": 0.264,
+            "energy_joules": 4.885897,
+            "cost_usd": 1.629e-07
+          },
+          {
+            "prefill_tokens": 32,
+            "decode_tokens": 10,
+            "latency_s": 0.28,
+            "energy_joules": 6.231069,
+            "cost_usd": 2.077e-07
+          }
+        ]
+      },
+      {
+        "label": "short-in/long-out",
+        "avg": {
+          "prefill_tokens": 41,
+          "decode_tokens": 279,
+          "latency_s": 7.05,
+          "energy_joules": 559.0927,
+          "cost_usd": 1.8636433333333333e-05
+        },
+        "rounds": [
+          {
+            "prefill_tokens": 41,
+            "decode_tokens": 279,
+            "latency_s": 6.996,
+            "energy_joules": 552.353784,
+            "cost_usd": 1.84118e-05
+          },
+          {
+            "prefill_tokens": 41,
+            "decode_tokens": 279,
+            "latency_s": 7.078,
+            "energy_joules": 560.091561,
+            "cost_usd": 1.86697e-05
+          },
+          {
+            "prefill_tokens": 41,
+            "decode_tokens": 279,
+            "latency_s": 7.076,
+            "energy_joules": 564.832712,
+            "cost_usd": 1.88278e-05
+          }
+        ]
+      },
+      {
+        "label": "long-in/short-out",
+        "avg": {
+          "prefill_tokens": 1234,
+          "decode_tokens": 20,
+          "latency_s": 0.537,
+          "energy_joules": 11.9601,
+          "cost_usd": 3.986666666666667e-07
+        },
+        "rounds": [
+          {
+            "prefill_tokens": 1234,
+            "decode_tokens": 20,
+            "latency_s": 0.533,
+            "energy_joules": 11.780147,
+            "cost_usd": 3.927e-07
+          },
+          {
+            "prefill_tokens": 1234,
+            "decode_tokens": 20,
+            "latency_s": 0.523,
+            "energy_joules": 10.932278,
+            "cost_usd": 3.644e-07
+          },
+          {
+            "prefill_tokens": 1234,
+            "decode_tokens": 20,
+            "latency_s": 0.556,
+            "energy_joules": 13.167865,
+            "cost_usd": 4.389e-07
+          }
+        ]
+      },
+      {
+        "label": "long-in/long-out",
+        "avg": {
+          "prefill_tokens": 533,
+          "decode_tokens": 300,
+          "latency_s": 7.676,
+          "energy_joules": 612.1964,
+          "cost_usd": 2.0406533333333332e-05
+        },
+        "rounds": [
+          {
+            "prefill_tokens": 533,
+            "decode_tokens": 300,
+            "latency_s": 7.652,
+            "energy_joules": 606.586087,
+            "cost_usd": 2.02195e-05
+          },
+          {
+            "prefill_tokens": 533,
+            "decode_tokens": 300,
+            "latency_s": 7.677,
+            "energy_joules": 611.568046,
+            "cost_usd": 2.03856e-05
+          },
+          {
+            "prefill_tokens": 533,
+            "decode_tokens": 300,
+            "latency_s": 7.699,
+            "energy_joules": 618.43503,
+            "cost_usd": 2.06145e-05
+          }
+        ]
+      }
+    ]
+  }
+]

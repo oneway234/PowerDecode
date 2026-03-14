@@ -1,0 +1,11 @@
+{
+  "latency_s": 1.2569,
+  "prefill_tokens": 130,
+  "decode_tokens": 46,
+  "raw_sample_count": 129,
+  "buffer_sample_count": 129,
+  "direct_joules": 36.811293,
+  "attributed_joules": 36.811293,
+  "error_pct": 0.0,
+  "passed": true
+}

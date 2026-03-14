@@ -1,0 +1,11 @@
+{
+  "test_a_avg_watts": 34.732,
+  "test_b_avg_watts": 106.33,
+  "difference_pct": 206.14,
+  "threshold_pct": 15.0,
+  "weighted_method_viable": true,
+  "w_prefill": 0.021243,
+  "w_decode": 0.177217,
+  "w_ratio": 0.1199,
+  "recommendation": "Weighted method is VIABLE. A vs B power difference is 206.1% (>15.0%). Use W_prefill=0.0212 W/tok and W_decode=0.1772 W/tok (ratio=0.120) for energy attribution."
+}

@@ -1,0 +1,8 @@
+{
+  "mean_watts": 21.0731,
+  "min_watts": 20.97,
+  "max_watts": 21.11,
+  "std_watts": 0.0167,
+  "sample_count": 2995,
+  "duration_seconds": 300
+}

@@ -1,0 +1,60 @@
+{
+  "gpu_model": "NVIDIA GeForce RTX 4060 Ti",
+  "gpu_count": 1,
+  "idle_power": 30.68,
+  "w_prefill": 0.0005,
+  "w_decode": 1.7873,
+  "decode_prefill_ratio": 3843.3,
+  "detail": {
+    "idle_samples": 988,
+    "prefill_rounds": [
+      {
+        "energy_j": 0.0,
+        "tokens": 690
+      },
+      {
+        "energy_j": 0.5964,
+        "tokens": 690
+      },
+      {
+        "energy_j": 0.3368,
+        "tokens": 690
+      },
+      {
+        "energy_j": 0.3364,
+        "tokens": 690
+      },
+      {
+        "energy_j": 0.3348,
+        "tokens": 690
+      }
+    ],
+    "decode_rounds": [
+      {
+        "energy_j": 710.0828,
+        "prefill_tokens": 71,
+        "decode_tokens": 400
+      },
+      {
+        "energy_j": 719.1846,
+        "prefill_tokens": 71,
+        "decode_tokens": 400
+      },
+      {
+        "energy_j": 715.6911,
+        "prefill_tokens": 71,
+        "decode_tokens": 400
+      },
+      {
+        "energy_j": 719.9468,
+        "prefill_tokens": 71,
+        "decode_tokens": 400
+      },
+      {
+        "energy_j": 709.7902,
+        "prefill_tokens": 71,
+        "decode_tokens": 400
+      }
+    ]
+  }
+}

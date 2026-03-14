@@ -1,0 +1,22 @@
+# PowerDecode — LLM inference cost transparency
+# Tested with Python 3.12.7, CUDA 12.8
+
+# GPU monitoring (pynvml)
+nvidia-ml-py>=12.0
+
+# Proxy server
+fastapi
+uvicorn
+httpx
+
+# Dashboard
+streamlit
+altair
+pandas
+
+# Data processing
+numpy
+
+# Environment & AI analysis
+python-dotenv
+anthropic

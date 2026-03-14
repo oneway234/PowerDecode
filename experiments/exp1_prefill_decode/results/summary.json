@@ -1,0 +1,44 @@
+{
+  "A_pure_prefill": {
+    "num_rounds": 5,
+    "avg_watts_mean": 34.732,
+    "avg_watts_std": 0.199,
+    "peak_watts_mean": 34.745,
+    "peak_watts_std": 0.23,
+    "energy_joules_mean": 2.417,
+    "energy_joules_std": 1.025,
+    "latency_mean": 0.069,
+    "latency_std": 0.029,
+    "duration_sec_mean": 0.069,
+    "duration_sec_std": 0.029,
+    "avg_power_sample_count": 6.4
+  },
+  "B_pure_decode": {
+    "num_rounds": 5,
+    "avg_watts_mean": 106.33,
+    "avg_watts_std": 0.411,
+    "peak_watts_mean": 111.212,
+    "peak_watts_std": 0.4,
+    "energy_joules_mean": 1537.369,
+    "energy_joules_std": 5.778,
+    "latency_mean": 14.458,
+    "latency_std": 0.007,
+    "duration_sec_mean": 14.458,
+    "duration_sec_std": 0.007,
+    "avg_power_sample_count": 1429
+  },
+  "C_mixed_baseline": {
+    "num_rounds": 5,
+    "avg_watts_mean": 95.537,
+    "avg_watts_std": 0.335,
+    "peak_watts_mean": 110.203,
+    "peak_watts_std": 0.172,
+    "energy_joules_mean": 462.153,
+    "energy_joules_std": 1.648,
+    "latency_mean": 4.837,
+    "latency_std": 0.001,
+    "duration_sec_mean": 4.837,
+    "duration_sec_std": 0.001,
+    "avg_power_sample_count": 477.8
+  }
+}

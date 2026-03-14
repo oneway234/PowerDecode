@@ -1,0 +1,29 @@
+{
+  "prefill_heavy": {
+    "baseline_watts": 23.73,
+    "P2": {
+      "avg_watts": 27.08,
+      "linearity": 0.571,
+      "passed": false
+    },
+    "P3": {
+      "avg_watts": 25.82,
+      "linearity": 0.363,
+      "passed": false
+    }
+  },
+  "decode_heavy": {
+    "baseline_watts": 29.49,
+    "D2": {
+      "avg_watts": 28.8,
+      "linearity": 0.488,
+      "passed": false
+    },
+    "D3": {
+      "avg_watts": 28.98,
+      "linearity": 0.328,
+      "passed": false
+    }
+  },
+  "overall_passed": false
+}
