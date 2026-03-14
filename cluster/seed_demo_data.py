@@ -1,7 +1,7 @@
 """Seed demo data — send requests to proxy so the dashboard looks convincing.
 
 Covers all three dashboard pages: Overview, Request Detail, Cost Trend.
-Max concurrency: 32.  Total: ~69 requests.
+Max concurrency: 32.  Total: ~66 requests.
 
 Usage:
     1. Start vLLM + proxy (./start.sh or manually)
@@ -283,14 +283,6 @@ def batch_e() -> list[tuple[str, int, str]]:
     return reqs
 
 
-def batch_f() -> list[tuple[str, int, str]]:
-    """BATCH F — Edge case: ultra-short "hi" × 3 (sequential).
-    prompt ≈ 1 token, max_tokens=1.  Finishes in < 50ms.
-    Sampler may not capture any power reading → energy ≈ 0 → triggers
-    extreme anomaly (flag=2).  Demonstrates the energy=0 boundary.
-    """
-    return [("hi", 1, f"edge-hi-{i}") for i in range(3)]
-
 
 # ======================================================================
 # Main
@@ -465,32 +457,6 @@ async def main() -> None:
             print(f"\n  decode-heavy request 佔總能耗: {top_share:.1f}%")
             print(f"  其他 {len(energies)-1} 筆平均各佔: {rest_avg:.1f}%")
 
-    # ------------------------------------------------------------------
-    # BATCH F — Edge case: ultra-short "hi" (energy≈0 boundary)
-    # ------------------------------------------------------------------
-    print_batch_header("BATCH F — Edge case: ultra-short 'hi' (energy=0 boundary)", 3)
-    batch_f_reqs = batch_f()
-    for prompt, mt, label in batch_f_reqs:
-        result = send_sequential(prompt, mt, label)
-        if result["status"] == "ok":
-            total_ok += 1
-            print(f"  {label}: ok")
-        else:
-            total_failed += 1
-            print(f"  {label}: failed — {result.get('error', '')}")
-        await asyncio.sleep(1.0)
-    await asyncio.sleep(3.0)
-    stats_f = fetch_recent(3)
-    print_attribution(stats_f)
-    energy_zero_count = sum(
-        1 for r in stats_f if (r.get("energy_joules", 0) or 0) == 0
-    )
-    extreme_count = sum(
-        1 for r in stats_f if r.get("anomaly_flag") == 2
-    )
-    print(f"  energy=0 count: {energy_zero_count}/3")
-    print(f"  extreme anomaly (flag=2) count: {extreme_count}/3")
-
     # ==================================================================
     # Final summary
     # ==================================================================
@@ -544,7 +510,6 @@ async def main() -> None:
     print(f"  {check(has_prefill_heavy)} Request Detail：有 prefill > 60% 的 request")
     print(f"  {check(has_slope_change)} Cost Trend：有明顯斜率變化")
     print(f"  {check(batch_e_pass)} Batch E：decode-heavy 佔比 > 50%")
-    print(f"  {check(extreme_count_all > 0)} Batch F：有 extreme anomaly (flag=2)")
     print(f"{'='*60}\n")
 
 
