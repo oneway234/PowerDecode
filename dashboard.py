@@ -346,9 +346,9 @@ if page == "Overview":
             with tab3:
                 _render_user(r_user)
 
-        # --- Decode Pricing Asymmetry scatter (uses ALL DB records) ---
-        st.subheader("Decode Pricing Asymmetry")
-        st.caption("If pricing were fair, all points would lie on the diagonal. Points above = decode users underpaying under flat-rate billing.")
+        # --- Decode Electricity Cost vs Token Share scatter (uses ALL DB records) ---
+        st.subheader("Decode Electricity Cost vs Token Share")
+        st.caption("Points above the line: decode workloads underpay under flat token pricing")
 
         W_PREFILL = 0.0112
         W_DECODE  = 0.4851
