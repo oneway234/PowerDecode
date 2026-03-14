@@ -5,6 +5,7 @@ and computes per-request energy attribution.
 """
 
 import logging
+import os
 import threading
 import time
 import uuid
@@ -27,6 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger("powerdecode.proxy")
 
 VLLM_BASE = "http://localhost:8000"
+WARMUP_MODEL = os.environ.get("VLLM_MODEL", "Qwen/Qwen2.5-3B-Instruct")
 
 # ======================================================================
 # Global state — initialized in lifespan
@@ -102,7 +104,7 @@ async def lifespan(app: FastAPI):
         time.sleep(2.0)  # wait for uvicorn to be fully ready
         logger.info("Starting GPU warm-up (3 requests)...")
         payload = {
-            "model": "warmup",
+            "model": WARMUP_MODEL,
             "messages": [{"role": "user", "content": "hi"}],
             "max_tokens": 10,
         }
