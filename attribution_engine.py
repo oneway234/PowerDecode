@@ -91,9 +91,9 @@ class AttributionEngine:
     based on weighted token counts.
     """
 
-    IDLE_POWER = 21.07            # watts
-    W_PREFILL = 0.0212            # W/token
-    W_DECODE = 0.1772             # W/token
+    IDLE_POWER = 252.15           # B200 實測
+    W_PREFILL = 0.001             # B200 prefill 極快，無法精確採樣，保守估算
+    W_DECODE = 0.4851             # B200 實測，5輪平均，變異 < 2%
     WAIT_AFTER_END = 0.05         # seconds — let last samples land
     ENERGY_COST_PER_KWH = 0.12   # USD
 

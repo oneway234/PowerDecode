@@ -93,7 +93,7 @@ Workload snapshot:
 - Anomaly requests: {anomaly_count}/{total_requests}
 - Most expensive: USD {max_cost:.8f} ({max_prefill}p + {max_decode}d tokens)
 - Cheapest: USD {min_cost:.8f}
-- Known: decode token costs 8.3x more electricity than prefill token.
+- Known: On NVIDIA B200, each decode token consumes 0.485J. Prefill is too fast to measure accurately (< 10ms per 690 tokens). Decode dominates electricity cost on B200.
 - Industry context: API providers (OpenAI, Anthropic, Google) already charge output tokens 3-5x more than input tokens — they discovered this asymmetry empirically at the API layer. However, GPU cloud providers like Fluidstack sell raw GPU hours and currently have zero visibility into prefill/decode split at the hardware level. PowerDecode is the first tool to measure this asymmetry directly on the GPU.
 """
 
@@ -475,10 +475,10 @@ elif page == "Request Detail":
                 </div>
                 <div style="font-size:2.4rem; font-weight:700; color:#f58518;
                             line-height:1.15; margin-bottom:0.4rem;">
-                    Decode costs 8.3× more electricity<br>than prefill tokens
+                    Decode dominates inference electricity cost
                 </div>
                 <div style="font-size:1.1rem; opacity:0.65;">
-                    Measured on RTX 4060 Ti using real inference workloads
+                    On NVIDIA B200, <strong>decode dominates inference electricity cost</strong>.<br>Prefill is too fast to measure accurately.
                 </div>
             </div>
             """,
