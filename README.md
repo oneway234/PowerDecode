@@ -64,6 +64,8 @@ The Decode Electricity Cost vs Token Share chart tells the story:
 If pricing reflected electricity cost, workloads would lie on the diagonal.
 Instead, most workloads fall above it — decode-heavy users consume more electricity than they pay for under flat token pricing.
 
+The relationship between decode token share and electricity share follows a consistent logarithmic curve across all model sizes — enabling predictive cost modeling for any inference workload.
+
 ---
 
 ## Validation (NVIDIA B200)
