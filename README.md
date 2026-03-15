@@ -4,7 +4,7 @@
 
 PowerDecode measures GPU electricity per inference request and attributes it to tokens.
 
-🎥 Demo Video: [coming soon]
+🎥 Demo Video: https://www.loom.com/share/17cf5cb1ab34440abab8d064fa6c5ab7
 📊 Live Dashboard: https://powerdecode.streamlit.app
 📦 GitHub: https://github.com/oneway234/PowerDecode
 
